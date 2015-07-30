@@ -19,11 +19,6 @@ class CurlHelper
     protected $htmlHelper = null;
 
     /**
-     * @var IpHelper
-     */
-    protected $ipHelper = null;
-
-    /**
      * @var resource[]
      */
     protected $chs = [];
@@ -68,9 +63,8 @@ class CurlHelper
      */
     const CONNECT_TIMEOUT = 11;
 
-    public function __construct(IpHelper $ipHelper)
+    public function __construct()
     {
-        $this->ipHelper = $ipHelper;
     }
 
     /**
@@ -87,7 +81,6 @@ class CurlHelper
         curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
         curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_INTERFACE, $this->getIpHelper()->getRandomIp());
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_FORBID_REUSE, 1);
         curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
@@ -226,11 +219,6 @@ class CurlHelper
             $this->textTargets[$t]->setUrl($urls[$t]);
             curl_setopt($this->chs[$t], CURLOPT_URL, $urls[$t]);
 
-            list($ipId, $ip) = $this->getIpHelper()->getPseudoRandomIpAndId();
-            $this->textTargets[$t]->setIp($ip);
-            $this->textTargets[$t]->setIpId($ipId);
-            curl_setopt($this->chs[$t], CURLOPT_INTERFACE, $ip);
-
             foreach ($this->getMultiCurlOptions() as $option => $value) {
                 curl_setopt($this->chs[$t], $option, $value);
             }
@@ -267,14 +255,6 @@ class CurlHelper
             $this->htmlHelper = new HTMLHelper();
         }
         return $this->htmlHelper;
-    }
-
-    /**
-     * @return IpHelper
-     */
-    protected function getIpHelper()
-    {
-        return $this->ipHelper;
     }
 
     /**
@@ -328,9 +308,6 @@ class CurlHelper
     protected function onComplete($index)
     {
         $this->textTargets[$index]->setCurlInfo(curl_getinfo($this->chs[$index]));
-        if (!$this->textTargets[$index]->getContent()) {
-            \DI::getInstance()->get('logger')->logEmptyTargetResponse($this->textTargets[$index]);
-        }
         $contentType = $this->textTargets[$index]->getCurlInfo()['content_type'];
         $this->textTargets[$index]->setContent(
             $this->getHtmlHelper()->toUTF8($this->textTargets[$index]->getContent(), $contentType)

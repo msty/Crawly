@@ -92,11 +92,6 @@ class HTMLHelper
             return $this->hotfixEncoding($matches[1]);
         }
 
-        /* Save into db for future analysis */
-        if ($url) {
-            \DI::getInstance()->get('logger')->logEmptyContent($url, $contentType);
-        }
-
         /* 4: PHP's heuristic detection */
         $encoding = mb_detect_encoding($html);
         if ($encoding) {

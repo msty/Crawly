@@ -9,11 +9,6 @@ namespace Helpers;
 class WebsiteScannerHelper
 {
     /**
-     * @var \PDO
-     */
-    protected $dbh;
-
-    /**
      * @var \Helpers\WebsiteMapperHelper
      */
     protected $mapperHelper;
@@ -91,15 +86,13 @@ class WebsiteScannerHelper
     }
 
     /**
-     * @param \PDO $dbh
      * @param $url
      * @throws \Exception
      */
-    public function __construct(\PDO $dbh, $url)
+    public function __construct($url)
     {
-        $this->dbh = $dbh;
         $this->setMapperHelper(new WebsiteMapperHelper());
-        $this->setProgressHelper(new WebsiteProgressHelper($dbh));
+        $this->setProgressHelper(new WebsiteProgressHelper());
         $this->parseInputUrl($url);
         $this->setInitialized($this->getProgressHelper()->loadProgress());
         $this->getMapperHelper()->addUrls($this->getProgressHelper()->getAllUrls());
@@ -133,7 +126,7 @@ class WebsiteScannerHelper
         $urls = [];
         $sections = $this->getMapperHelper()->getSections(true);
         foreach ($sections as $section) {
-            if (in_array($section['code'], $filterSections)) {
+            if (empty($filterSections) || in_array($section['code'], $filterSections)) {
                 $urls = array_merge($urls, (array) $section['urlsList']);
             }
         }
@@ -543,7 +536,7 @@ class WebsiteScannerHelper
     public function getCurlHelper()
     {
         if ($this->curlHelper === null) {
-            $this->curlHelper = new CurlHelper(new IpHelper($this->dbh));
+            $this->curlHelper = new CurlHelper();
             $this->curlHelper->setSuccessCallback([$this, 'successCallback']);
         }
         return $this->curlHelper;

@@ -9,11 +9,6 @@ namespace Helpers;
 class WebsiteProgressHelper
 {
     /**
-     * @var \PDO
-     */
-    protected $dbh;
-
-    /**
      * @var int
      */
     protected $progressId = null;
@@ -38,32 +33,26 @@ class WebsiteProgressHelper
      */
     protected $notVisited = [];
 
-    public function __construct(\PDO $dbh)
+    public function __construct()
     {
-        $this->dbh = $dbh;
     }
 
     /**
-     * @param bool $initialized
-     *
      * @throws \Exception
      */
-    public function saveProgress($initialized = false)
+    public function saveProgress()
     {
         if ($this->getHost() === null) {
             throw new \Exception('Host must be defined to save progress');
         }
-        if ($this->progressId) {
-            $sql = 'UPDATE progress_scanner set visited = ?, not_visited = ? where id = ?';
-            $sth = $this->dbh->prepare($sql);
-            $sth->execute([my_json_encode($this->visited), my_json_encode($this->notVisited), $this->progressId]);
-        } else {
-            $sql = 'INSERT INTO progress_scanner (host, last_parse, visited, not_visited, initialized) VALUES (?, NOW(), ?, ?, ?)';
-            $sth = $this->dbh->prepare($sql);
-            $sth->execute([
-                $this->getHost(), my_json_encode($this->visited), my_json_encode($this->notVisited), $initialized ? 1 : 0
-            ]);
-        }
+
+        $fileName = sprintf('%s/temp/%s.txt', HOME, $this->getHost());
+        $progress = [
+            (new \DateTime())->format('c'),
+            my_json_encode($this->visited),
+            my_json_encode($this->notVisited),
+        ];
+        file_put_contents($fileName, implode("\n", $progress));
     }
 
     /**
@@ -77,19 +66,19 @@ class WebsiteProgressHelper
             throw new \Exception('Host must be defined to load progress');
         }
 
-        // look for progress saved in database
-        $sth = $this->dbh->prepare('SELECT * FROM progress_scanner WHERE host = ? AND last_parse > (NOW() - INTERVAL 1 DAY)');
-        $sth->execute([$this->getHost()]);
-        if (!$this->dbh->query("select found_rows()")->fetchColumn()) {
+        $fileName = sprintf('%s/temp/%s.txt', HOME, $this->getHost());
+        if (!file_exists($fileName)) {
             return false;
         }
 
-        $progress = $sth->fetch();
-        $this->visited = json_decode($progress['visited'], true);
-        $this->notVisited = json_decode($progress['not_visited'], true);
-        // save last parse to not refresh it without actually parsing from scratch
-        $this->progressId = $progress['id'];
-        return (bool) $progress['initialized'];
+        $data = file($fileName);
+        if (count($data) != 3 || new \DateTime($data[0]) < new \DateTime('now - 1 week')) {
+            return false;
+        }
+
+        $this->visited = json_decode($data[1], true);
+        $this->notVisited = json_decode($data[2], true);
+        return true;
     }
 
     /**

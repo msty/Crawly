@@ -6,7 +6,7 @@ setlocale(LC_ALL, 'ru_RU.UTF-8');
 @session_start();
 
 if (!defined('HOME')) {
-    define('HOME', __DIR__);
+    define('HOME', dirname(__DIR__));
 }
 
 spl_autoload_register(function($class){
@@ -17,9 +17,8 @@ spl_autoload_register(function($class){
         return;
     }
     is_file(HOME . '/includes/class.' . $className . '.php') && require_once(HOME . '/includes/class.' . $className . '.php');
-    is_file(HOME . '/includes/class.' . strtolower($className) . '.php') && require_once(HOME . '/includes/class.' . strtolower($className) . '.php');
     is_file(HOME . '/includes/Helpers/class.' . $className . '.php') && require_once(HOME . '/includes/Helpers/class.' . $className . '.php');
 });
 
 require_once(HOME . '/includes/class.IDNA.php');
-require_once(HOME . '/includes/class.db.php');
+require_once(HOME . '/includes/functions.php');
