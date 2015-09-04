@@ -21,7 +21,7 @@
 
 <?php
 if (!empty($_POST)) {
-    require_once('includes/preconfig.php');
+    require_once('../includes/preconfig.php');
 
     $defaults = [
         'type' => 'sections',
