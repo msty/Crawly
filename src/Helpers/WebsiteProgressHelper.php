@@ -46,7 +46,7 @@ class WebsiteProgressHelper
             throw new \Exception('Host must be defined to save progress');
         }
 
-        $fileName = sprintf('%s/temp/%s.txt', HOME, $this->getHost());
+        $fileName = sprintf('%s/tmp/%s.txt', HOME, $this->getHost());
         $progress = [
             (new \DateTime())->format('c'),
             my_json_encode($this->visited),
@@ -66,7 +66,7 @@ class WebsiteProgressHelper
             throw new \Exception('Host must be defined to load progress');
         }
 
-        $fileName = sprintf('%s/temp/%s.txt', HOME, $this->getHost());
+        $fileName = sprintf('%s/tmp/%s.txt', HOME, $this->getHost());
         if (!file_exists($fileName)) {
             return false;
         }
