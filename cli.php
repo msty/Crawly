@@ -3,7 +3,7 @@
  * Website scanner, command line interface
  */
 
-require_once('src/preconfig.php');
+require_once('src/Scanner/preconfig.php');
 
 printf("Website scanner\n");
 

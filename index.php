@@ -21,7 +21,7 @@
 
 <?php
 if (!empty($_POST)) {
-    require_once('src/preconfig.php');
+    require_once('src/Scanner/preconfig.php');
 
     $defaults = [
         'type' => 'sections',
