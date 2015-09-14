@@ -12,7 +12,6 @@
 .project
 .metadata
 bin/
-tmp/
 *.tmp
 *.bak
 *.swp
