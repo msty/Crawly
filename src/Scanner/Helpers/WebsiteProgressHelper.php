@@ -1,6 +1,6 @@
 <?php
 
-namespace Helpers;
+namespace Scanner\Helpers;
 
 /**
  * Class WebsiteProgressHelper
@@ -46,11 +46,11 @@ class WebsiteProgressHelper
             throw new \Exception('Host must be defined to save progress');
         }
 
-        $fileName = sprintf('%s/tmp/%s.txt', HOME, $this->getHost());
+        $fileName = sprintf('%s/tmp/%s.txt', SCANNER_ROOT, $this->getHost());
         $progress = [
             (new \DateTime())->format('c'),
-            my_json_encode($this->visited),
-            my_json_encode($this->notVisited),
+            Functions::my_json_encode($this->visited),
+            Functions::my_json_encode($this->notVisited),
         ];
         file_put_contents($fileName, implode("\n", $progress));
     }
@@ -66,7 +66,7 @@ class WebsiteProgressHelper
             throw new \Exception('Host must be defined to load progress');
         }
 
-        $fileName = sprintf('%s/tmp/%s.txt', HOME, $this->getHost());
+        $fileName = sprintf('%s/tmp/%s.txt', SCANNER_ROOT, $this->getHost());
         if (!file_exists($fileName)) {
             return false;
         }

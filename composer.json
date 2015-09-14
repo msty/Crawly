@@ -1,0 +1,16 @@
+{
+    "repositories": [
+        {
+            "type": "pear",
+            "url": "https://pear.php.net"
+        }
+    ],
+    "require": {
+        "pear-pear.php.net/Net_IDNA": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Scanner\\": "src/Scanner/"
+        }
+    }
+}

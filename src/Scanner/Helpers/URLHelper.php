@@ -1,6 +1,6 @@
 <?php
 
-namespace Helpers;
+namespace Scanner\Helpers;
 
 /**
  * Class URLHelper
@@ -108,7 +108,7 @@ class URLHelper
 
         // full url
         if (mb_strpos($href, '://') !== FALSE) {
-            $href = \Net_IDNA::encodeDomain($href);
+            $href = (new \Net_IDNA())->encode($href);
             $linkHost = mb_strtolower(preg_replace('~^www.~isu', '', parse_url($href, PHP_URL_HOST)));
             if ($linkHost != $host) {
                 return false;

@@ -20,8 +20,12 @@
 </div>
 
 <?php
+
+require_once('config/bootstrap.php');
+
+use Scanner\Helpers\WebsiteScannerHelper;
+
 if (!empty($_POST)) {
-    require_once('src/Scanner/preconfig.php');
 
     $defaults = [
         'type' => 'sections',
@@ -32,12 +36,12 @@ if (!empty($_POST)) {
 
     $host = urldecode($request['host']);
     $sections = (array) $request['sections'];
-    if (!\Helpers\WebsiteScannerHelper::validateInputUrl($host)) {
+    if (!WebsiteScannerHelper::validateInputUrl($host)) {
         throw new \Exception('Invalid url');
     }
 
     // initialize scanner
-    $scanner = new \Helpers\WebsiteScannerHelper($host);
+    $scanner = new WebsiteScannerHelper($host);
 
     // scan up to N pages
     $scanner->scan(5);

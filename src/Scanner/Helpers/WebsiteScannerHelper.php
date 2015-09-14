@@ -1,6 +1,8 @@
 <?php
 
-namespace Helpers;
+namespace Scanner\Helpers;
+
+use Scanner\TextTarget;
 
 /**
  * Class WebsiteScannerHelper
@@ -9,22 +11,22 @@ namespace Helpers;
 class WebsiteScannerHelper
 {
     /**
-     * @var \Helpers\WebsiteMapperHelper
+     * @var \Scanner\Helpers\WebsiteMapperHelper
      */
     protected $mapperHelper;
 
     /**
-     * @var \Helpers\WebsiteProgressHelper
+     * @var \Scanner\Helpers\WebsiteProgressHelper
      */
     protected $progressHelper;
 
     /**
-     * @var \Helpers\URLHelper
+     * @var \Scanner\Helpers\URLHelper
      */
     protected $urlHelper = null;
 
     /**
-     * @var \Helpers\CurlHelper
+     * @var \Scanner\Helpers\CurlHelper
      */
     protected $curlHelper = null;
 
@@ -140,9 +142,9 @@ class WebsiteScannerHelper
     /**
      * Passed as a callback to curl helper to be executed when handle finishes downloading content of the url
      *
-     * @param \TextTarget $textTarget
+     * @param TextTarget $textTarget
      */
-    public function successCallback(\TextTarget $textTarget)
+    public function successCallback(TextTarget $textTarget)
     {
         $this->trackResponseLength($textTarget->length());
 
@@ -423,7 +425,7 @@ class WebsiteScannerHelper
         }
 
         // figure www or not
-        $encodedUrl = \Net_IDNA::encodeDomain($url);
+        $encodedUrl = (new \Net_IDNA())->encode($url);
         $host = parse_url($encodedUrl, PHP_URL_HOST);
         if (mb_strpos($host, 'www.') === 0) {
             $this->setWWW(true);
