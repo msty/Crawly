@@ -13,12 +13,12 @@ spl_autoload_register(function($class){
     $parts = array_values(array_filter(explode('\\', $class)));
     $className = array_pop($parts);
     if (!empty($parts)) {
-        require_once(HOME . '/includes/' . implode('/', $parts) . '/class.' . $className . '.php');
+        require_once(HOME . '/includes/' . implode('/', $parts) . '/' . $className . '.php');
         return;
     }
-    is_file(HOME . '/includes/class.' . $className . '.php') && require_once(HOME . '/includes/class.' . $className . '.php');
-    is_file(HOME . '/includes/Helpers/class.' . $className . '.php') && require_once(HOME . '/includes/Helpers/class.' . $className . '.php');
+    is_file(HOME . '/includes/' . $className . '.php') && require_once(HOME . '/includes/' . $className . '.php');
+    is_file(HOME . '/includes/Helpers/' . $className . '.php') && require_once(HOME . '/includes/Helpers/' . $className . '.php');
 });
 
-require_once(HOME . '/includes/class.IDNA.php');
+require_once(HOME . '/includes/IDNA.php');
 require_once(HOME . '/includes/functions.php');
