@@ -2,11 +2,13 @@
 
 namespace Scanner\Helpers;
 
-use Scanner\TextTarget;
+use Scanner\Page;
+use Scanner\Request\RequestHelper;
+use Scanner\Url\UrlHelper;
 
 /**
  * Class WebsiteScannerHelper
- * @package Helpers
+ * @package Scanner\Helpers
  */
 class WebsiteScannerHelper
 {
@@ -21,14 +23,14 @@ class WebsiteScannerHelper
     protected $progressHelper;
 
     /**
-     * @var \Scanner\Helpers\URLHelper
+     * @var UrlHelper
      */
     protected $urlHelper = null;
 
     /**
-     * @var \Scanner\Helpers\CurlHelper
+     * @var \Scanner\Request\RequestHelper
      */
-    protected $curlHelper = null;
+    protected $requestHelper = null;
 
     /**
      * @var int
@@ -89,19 +91,16 @@ class WebsiteScannerHelper
 
     /**
      * @param $url
+     * @param bool $persistProgress
      * @throws \Exception
      */
-    public function __construct($url)
+    public function __construct($url, $persistProgress = true)
     {
         $this->setMapperHelper(new WebsiteMapperHelper());
-        $this->setProgressHelper(new WebsiteProgressHelper());
+        $this->setProgressHelper(new WebsiteProgressHelper($persistProgress));
         $this->parseInputUrl($url);
         $this->setInitialized($this->getProgressHelper()->loadProgress());
         $this->getMapperHelper()->addUrls($this->getProgressHelper()->getAllUrls());
-    }
-
-    public function __destruct()
-    {
     }
 
     /**
@@ -123,7 +122,7 @@ class WebsiteScannerHelper
      * @param array $filterSections
      * @return array
      */
-    public function getUrlsOfSections(array $filterSections)
+    public function getUrlsOfSections(array $filterSections = [])
     {
         $urls = [];
         $sections = $this->getMapperHelper()->getSections(true);
@@ -142,14 +141,14 @@ class WebsiteScannerHelper
     /**
      * Passed as a callback to curl helper to be executed when handle finishes downloading content of the url
      *
-     * @param TextTarget $textTarget
+     * @param Page $page
      */
-    public function successCallback(TextTarget $textTarget)
+    public function successCallback(Page $page)
     {
-        $this->trackResponseLength($textTarget->length());
+        $this->trackResponseLength($page->length());
 
-        $path = $this->getUrlHelper()->getPath($textTarget->getUrl()) ?: '/';
-        $urls = $this->getValidLinks($textTarget->getContent(), $path);
+        $path = $this->getUrlHelper()->getPath($page->getUrl()) ?: '/';
+        $urls = $this->getValidLinks($page->getContent(), $path);
         $this->getMapperHelper()->addUrls($urls);
         $this->getProgressHelper()->addUrls($urls);
     }
@@ -175,7 +174,7 @@ class WebsiteScannerHelper
         }
 
         while ($this->getProgressHelper()->hasNotVisitedPages() && $this->totalResponseCount < $maxPages) {
-            $this->getCurlHelper()->fetchUrls(
+            $this->getRequestHelper()->fetchUrls(
                 $this->prepareUrlsForRequest(
                     $this->getProgressHelper()->getNotVisitedUrls(min(25, $maxPages - $this->totalResponseCount))
                 )
@@ -196,17 +195,17 @@ class WebsiteScannerHelper
             ($this->getHttps() ? 'https://' : 'http://') . 'www.' . $this->getHost() . '/sitemap.xml',
         ];
         // set empty callback, because we manually handle output
-        $this->getCurlHelper()->setSuccessCallback(function(){});
-        $textTargets = $this->getCurlHelper()->fetchUrls($urls);
+        $this->getRequestHelper()->setSuccessCallback(function(){});
+        $pages = $this->getRequestHelper()->fetchUrls($urls);
         $this->getProgressHelper()->addVisitedUrl('/');
 
         // parsing site map xml if found
-        $this->parseSiteMap($textTargets[2]->getContent());
-        $this->parseSiteMap($textTargets[3]->getContent());
+        $this->parseSiteMap($pages[2]->getContent());
+        $this->parseSiteMap($pages[3]->getContent());
 
         // looking for website map link on main page
-        $links = $this->getValidLinks($textTargets[0]->getContent());
-        $linksWWW = $this->getValidLinks($textTargets[1]->getContent());
+        $links = $this->getValidLinks($pages[0]->getContent());
+        $linksWWW = $this->getValidLinks($pages[1]->getContent());
         if (count($linksWWW) > count($links)) {
             $this->setWWW(true);
         }
@@ -219,7 +218,7 @@ class WebsiteScannerHelper
             $this->getProgressHelper()->addUrls($siteMapLinks, 1000);
         }
 
-        $this->getCurlHelper()->setSuccessCallback([$this, 'successCallback']);
+        $this->getRequestHelper()->setSuccessCallback([$this, 'successCallback']);
         $this->setInitialized(true);
     }
 
@@ -522,25 +521,25 @@ class WebsiteScannerHelper
     }
 
     /**
-     * @return URLHelper
+     * @return UrlHelper
      */
     public function getUrlHelper()
     {
         if ($this->urlHelper === null) {
-            $this->urlHelper = new URLHelper();
+            $this->urlHelper = new UrlHelper();
         }
         return $this->urlHelper;
     }
 
     /**
-     * @return CurlHelper
+     * @return RequestHelper
      */
-    public function getCurlHelper()
+    public function getRequestHelper()
     {
-        if ($this->curlHelper === null) {
-            $this->curlHelper = new CurlHelper();
-            $this->curlHelper->setSuccessCallback([$this, 'successCallback']);
+        if ($this->requestHelper === null) {
+            $this->requestHelper = new RequestHelper();
+            $this->requestHelper->setSuccessCallback([$this, 'successCallback']);
         }
-        return $this->curlHelper;
+        return $this->requestHelper;
     }
 }

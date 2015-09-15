@@ -1,14 +1,15 @@
 <?php
 
-namespace Scanner\Helpers;
+namespace Scanner\Request;
 
-use Scanner\TextTarget;
+use Scanner\Html\HTMLHelper;
+use Scanner\Page;
 
 /**
- * Class CurlHelper
- * @package Helpers
+ * Class RequestHelper
+ * @package Scanner\Request
  */
-class CurlHelper
+class RequestHelper
 {
     /**
      * @var array
@@ -16,7 +17,7 @@ class CurlHelper
     protected $lastInfo = [];
 
     /**
-     * @var HtmlHelper
+     * @var HTMLHelper
      */
     protected $htmlHelper = null;
 
@@ -26,9 +27,9 @@ class CurlHelper
     protected $chs = [];
 
     /**
-     * @var \TextTarget[]
+     * @var Page[]
      */
-    protected $textTargets = [];
+    protected $pages = [];
 
     /**
      * @var array
@@ -171,7 +172,7 @@ class CurlHelper
     /**
      * @param array$urls
      *
-     * @return \TextTarget[]
+     * @return Page[]
      */
     public function fetchUrls($urls)
     {
@@ -193,7 +194,7 @@ class CurlHelper
                 unset($chsInProgress[$index]);
             }
         } while ($active > 0);
-        return $this->textTargets;
+        return $this->pages;
     }
 
     /**
@@ -210,15 +211,14 @@ class CurlHelper
         $this->contents = array_fill(0, $urlsCount + 1, '');
         $this->lengths = array_fill(0, $urlsCount + 1, 0);
         $this->chs = [];
-        $this->textTargets = [];
+        $this->pages = [];
         $cmh = curl_multi_init();
 
         for ($t = 0; $t < $urlsCount; $t++) {
-            // echo "url: " . $urls[$t] . "...<br>\n";
-            $this->textTargets[$t] = new TextTarget();
+            $this->pages[$t] = new Page();
             $this->chs[$t] = curl_init();
 
-            $this->textTargets[$t]->setUrl($urls[$t]);
+            $this->pages[$t]->setUrl($urls[$t]);
             curl_setopt($this->chs[$t], CURLOPT_URL, $urls[$t]);
 
             foreach ($this->getMultiCurlOptions() as $option => $value) {
@@ -272,15 +272,15 @@ class CurlHelper
         $index = array_search($ch, $this->chs);
         $chunkLength = strlen($chunk);
 
-        if (($this->textTargets[$index]->length() + $chunkLength) >= 100000) {
-            $this->textTargets[$index]->setContent(
-                $this->textTargets[$index]->getContent() . substr($chunk, 0, 100000 - $this->textTargets[$index]->length())
+        if (($this->pages[$index]->length() + $chunkLength) >= 100000) {
+            $this->pages[$index]->setContent(
+                $this->pages[$index]->getContent() . substr($chunk, 0, 100000 - $this->pages[$index]->length())
             );
             return -1;
         }
 
-        $this->textTargets[$index]->setContent(
-            $this->textTargets[$index]->getContent() . $chunk
+        $this->pages[$index]->setContent(
+            $this->pages[$index]->getContent() . $chunk
         );
         return strlen($chunk);
     }
@@ -296,8 +296,8 @@ class CurlHelper
     public function headerfn($ch, $chunk)
     {
         $index = array_search($ch, $this->chs);
-        $this->textTargets[$index]->setHeader(
-            $this->textTargets[$index]->getHeader() . $chunk
+        $this->pages[$index]->setHeader(
+            $this->pages[$index]->getHeader() . $chunk
         );
         return strlen($chunk);
     }
@@ -309,34 +309,15 @@ class CurlHelper
      */
     protected function onComplete($index)
     {
-        $this->textTargets[$index]->setCurlInfo(curl_getinfo($this->chs[$index]));
-        $contentType = $this->textTargets[$index]->getCurlInfo()['content_type'];
-        $this->textTargets[$index]->setContent(
-            $this->getHtmlHelper()->toUTF8($this->textTargets[$index]->getContent(), $contentType)
+        $this->pages[$index]->setCurlInfo(curl_getinfo($this->chs[$index]));
+        $contentType = $this->pages[$index]->getCurlInfo()['content_type'];
+        $this->pages[$index]->setContent(
+            $this->getHtmlHelper()->toUTF8($this->pages[$index]->getContent(), $contentType)
         );
 
         // extracting content by default. user can pass callback to change this
-        if (is_null($this->successCallback)) {
-            $this->onCompleteComparisonRequest($index);
-        } else {
-            call_user_func($this->successCallback, $this->textTargets[$index]);
+        if (!is_null($this->successCallback)) {
+            call_user_func($this->successCallback, $this->pages[$index]);
         }
-    }
-
-    /**
-     * функция для успешного завершения запроса
-     *
-     * @param int $index
-     */
-    protected function onCompleteComparisonRequest($index)
-    {
-        $this->textTargets[$index]->setContent(
-            $this->getHtmlHelper()->cutContent($this->textTargets[$index]->getContent())
-        );
-
-        $this->textTargets[$index]->cleanContent();
-        $this->textTargets[$index]->replaceTransliteratedLetters();
-        $this->textTargets[$index]->cutLength(15000);
-        $this->textTargets[$index]->lemmatize();
     }
 }

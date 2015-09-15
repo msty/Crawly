@@ -4,7 +4,7 @@ namespace Scanner\Helpers;
 
 /**
  * Class WebsiteMapperHelper
- * @package Helpers
+ * @package Scanner\Helpers
  */
 class WebsiteMapperHelper
 {
