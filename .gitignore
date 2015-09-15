@@ -12,7 +12,6 @@
 .project
 .metadata
 bin/
-tmp/
 *.tmp
 *.bak
 *.swp
@@ -219,3 +218,8 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+
+### Website scanner
+tmp/
+vendor/

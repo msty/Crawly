@@ -1,0 +1,48 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "554ab7455a41dc50a33cac686b22d6a0",
+    "content-hash": "8cece2c376ad7c00a5afea4800cc2c49",
+    "packages": [
+        {
+            "name": "pear-pear.php.net/Net_IDNA",
+            "version": "0.8.1",
+            "dist": {
+                "type": "file",
+                "url": "https://pear.php.net/get/Net_IDNA-0.8.1.tgz",
+                "reference": null,
+                "shasum": null
+            },
+            "require": {
+                "php": ">=4.3.0.0"
+            },
+            "replace": {
+                "pear-pear/net_idna": "== 0.8.1.0"
+            },
+            "type": "pear-library",
+            "autoload": {
+                "classmap": [
+                    ""
+                ]
+            },
+            "include-path": [
+                "/"
+            ],
+            "license": [
+                "LGPL"
+            ],
+            "description": "This package helps you to encode and decode punycode strings easily."
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

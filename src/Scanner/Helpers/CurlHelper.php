@@ -1,6 +1,8 @@
 <?php
 
-namespace Helpers;
+namespace Scanner\Helpers;
+
+use Scanner\TextTarget;
 
 /**
  * Class CurlHelper
@@ -213,7 +215,7 @@ class CurlHelper
 
         for ($t = 0; $t < $urlsCount; $t++) {
             // echo "url: " . $urls[$t] . "...<br>\n";
-            $this->textTargets[$t] = new \TextTarget();
+            $this->textTargets[$t] = new TextTarget();
             $this->chs[$t] = curl_init();
 
             $this->textTargets[$t]->setUrl($urls[$t]);

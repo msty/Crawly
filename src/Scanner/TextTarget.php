@@ -1,5 +1,7 @@
 <?php
 
+namespace Scanner;
+
 /**
  * Class TextTarget
  */

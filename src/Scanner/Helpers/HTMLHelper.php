@@ -1,6 +1,6 @@
 <?php
 
-namespace Helpers;
+namespace Scanner\Helpers;
 
 /**
  * Class HTMLHelper
