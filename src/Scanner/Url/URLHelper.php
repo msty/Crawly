@@ -1,12 +1,12 @@
 <?php
 
-namespace Scanner\Helpers;
+namespace Scanner\Url;
 
 /**
- * Class URLHelper
- * @package Helpers
+ * Class UrlHelper
+ * @package Scanner\Url
  */
-class URLHelper
+class UrlHelper
 {
     public function __construct()
     {

@@ -4,7 +4,7 @@ namespace Scanner\Helpers;
 
 /**
  * Class WebsiteProgressHelper
- * @package Helpers
+ * @package Scanner\Helpers
  */
 class WebsiteProgressHelper
 {
@@ -33,8 +33,14 @@ class WebsiteProgressHelper
      */
     protected $notVisited = [];
 
-    public function __construct()
+    /**
+     * @var bool
+     */
+    protected $persistProgress;
+
+    public function __construct($persistProgress)
     {
+        $this->persistProgress = (bool) $persistProgress;
     }
 
     /**
@@ -42,15 +48,18 @@ class WebsiteProgressHelper
      */
     public function saveProgress()
     {
+        if (!$this->persistProgress) {
+            return;
+        }
         if ($this->getHost() === null) {
             throw new \Exception('Host must be defined to save progress');
         }
 
-        $fileName = sprintf('%s/tmp/%s.txt', SCANNER_ROOT, $this->getHost());
+        $fileName = sprintf('%s/tmp/%s.txt', dirname(dirname(dirname(__DIR__))), $this->getHost());
         $progress = [
             (new \DateTime())->format('c'),
-            Functions::my_json_encode($this->visited),
-            Functions::my_json_encode($this->notVisited),
+            json_encode($this->visited),
+            json_encode($this->notVisited),
         ];
         file_put_contents($fileName, implode("\n", $progress));
     }
@@ -62,11 +71,14 @@ class WebsiteProgressHelper
      */
     public function loadProgress()
     {
+        if (!$this->persistProgress) {
+            return false;
+        }
         if ($this->getHost() === null) {
             throw new \Exception('Host must be defined to load progress');
         }
 
-        $fileName = sprintf('%s/tmp/%s.txt', SCANNER_ROOT, $this->getHost());
+        $fileName = sprintf('%s/tmp/%s.txt', dirname(dirname(dirname(__DIR__))), $this->getHost());
         if (!file_exists($fileName)) {
             return false;
         }

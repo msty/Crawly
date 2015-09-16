@@ -3,9 +3,7 @@
  * Website scanner, command line interface
  */
 
-require_once('config/bootstrap.php');
-
-use Scanner\Helpers\WebsiteScannerHelper;
+require_once('vendor/autoload.php');
 
 printf("Website scanner\n");
 
@@ -29,29 +27,20 @@ $request = array_merge($defaults, [
     'type' => $argv[2]
 ]);
 
-$host = urldecode($request['host']);
-$sections = (array) $request['sections'];
-if (!WebsiteScannerHelper::validateInputUrl($host)) {
-    throw new \Exception('Invalid url');
-}
-
 // initialize scanner
-$scanner = new WebsiteScannerHelper($host);
-
-// scan up to N pages
-$scanner->scan(5);
+$scanner = new \Scanner\Scanner($request['host'], false);
 
 if ($request['type'] === 'sections') {
     // map found pages and internal links to website sections
-    $urls = $scanner->getSections($sections);
+    $urls = $scanner->getSections();
 } else {
     // return list of found urls
-    $urls = $scanner->getUrlsOfSections($sections);
+    $urls = $scanner->getUrls((array) $request['sections']);
 }
 
 // output results
 printf(
     "\nScan Results for %s:\n%s\n",
-    $host,
+    $request['host'],
     print_r($urls, true)
 );
