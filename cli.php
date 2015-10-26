@@ -28,15 +28,8 @@ $request = array_merge($defaults, [
 ]);
 
 // initialize scanner
-$scanner = new \Scanner\Scanner($request['host']);
-
-if ($request['type'] === 'sections') {
-    // map found pages and internal links to website sections
-    $urls = $scanner->getSections();
-} else {
-    // return list of found urls
-    $urls = $scanner->getUrls((array) $request['sections']);
-}
+$scanner = new \Scanner\Scanner($request['host'], new \Scanner\Formatter\UrlListFormatter());
+$urls = $scanner->getResult();
 
 // output results
 printf(

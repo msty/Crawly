@@ -1,6 +1,8 @@
 <?php
 
 namespace Scanner;
+
+use Scanner\Formatter\FormatterInterface;
 use Scanner\Helpers\WebsiteScannerHelper;
 
 /**
@@ -19,34 +21,25 @@ class Scanner
     protected $scanned = false;
 
     /**
-     * @param $url
+     * @param string $url
+     * @param FormatterInterface $formatter
      * @throws \Exception
      */
-    public function __construct($url)
+    public function __construct($url, FormatterInterface $formatter)
     {
-        $this->scannerHelper = new WebsiteScannerHelper($url);
+        $this->scannerHelper = new WebsiteScannerHelper($url, $formatter);
         if (!WebsiteScannerHelper::validateInputUrl($url)) {
             throw new \Exception('Invalid url');
         }
     }
 
     /**
-     * @param $filterSections
-     * @return array
+     * @return mixed
      */
-    public function getUrls($filterSections)
+    public function getResult()
     {
         $this->scan();
-        return $this->scannerHelper->getUrlsOfSections($filterSections);
-    }
-
-    /**
-     * @return array
-     */
-    public function getSections()
-    {
-        $this->scan();
-        return $this->scannerHelper->getSections();
+        return $this->scannerHelper->getResult();
     }
 
     protected function scan()
