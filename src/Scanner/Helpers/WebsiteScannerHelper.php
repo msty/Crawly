@@ -91,15 +91,13 @@ class WebsiteScannerHelper
 
     /**
      * @param $url
-     * @param bool $persistProgress
      * @throws \Exception
      */
-    public function __construct($url, $persistProgress = true)
+    public function __construct($url)
     {
         $this->setMapperHelper(new WebsiteMapperHelper());
-        $this->setProgressHelper(new WebsiteProgressHelper($persistProgress));
+        $this->setProgressHelper(new WebsiteProgressHelper());
         $this->parseInputUrl($url);
-        $this->setInitialized($this->getProgressHelper()->loadProgress());
         $this->getMapperHelper()->addUrls($this->getProgressHelper()->getAllUrls());
     }
 
@@ -180,7 +178,6 @@ class WebsiteScannerHelper
                 )
             );
         }
-        $this->getProgressHelper()->saveProgress($this->getInitialized());
     }
 
     /**
