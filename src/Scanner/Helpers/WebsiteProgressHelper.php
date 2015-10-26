@@ -34,66 +34,6 @@ class WebsiteProgressHelper
     protected $notVisited = [];
 
     /**
-     * @var bool
-     */
-    protected $persistProgress;
-
-    public function __construct($persistProgress)
-    {
-        $this->persistProgress = (bool) $persistProgress;
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function saveProgress()
-    {
-        if (!$this->persistProgress) {
-            return;
-        }
-        if ($this->getHost() === null) {
-            throw new \Exception('Host must be defined to save progress');
-        }
-
-        $fileName = sprintf('%s/tmp/%s.txt', dirname(dirname(dirname(__DIR__))), $this->getHost());
-        $progress = [
-            (new \DateTime())->format('c'),
-            json_encode($this->visited),
-            json_encode($this->notVisited),
-        ];
-        file_put_contents($fileName, implode("\n", $progress));
-    }
-
-    /**
-     * @return bool
-     *
-     * @throws \Exception
-     */
-    public function loadProgress()
-    {
-        if (!$this->persistProgress) {
-            return false;
-        }
-        if ($this->getHost() === null) {
-            throw new \Exception('Host must be defined to load progress');
-        }
-
-        $fileName = sprintf('%s/tmp/%s.txt', dirname(dirname(dirname(__DIR__))), $this->getHost());
-        if (!file_exists($fileName)) {
-            return false;
-        }
-
-        $data = file($fileName);
-        if (count($data) != 3 || new \DateTime($data[0]) < new \DateTime('now - 1 week')) {
-            return false;
-        }
-
-        $this->visited = json_decode($data[1], true);
-        $this->notVisited = json_decode($data[2], true);
-        return true;
-    }
-
-    /**
      * @return bool
      */
     public function hasNotVisitedPages()
