@@ -79,13 +79,13 @@ class UrlHelper
     {
         $href = trim($href);
 
-        // ignore mailto links
-        if (mb_stripos($href, 'mailto:') === 0) {
+        // ignore mailto and tel links
+        if (mb_stripos($href, 'mailto:') === 0 || mb_stripos($href, 'tel:') === 0) {
             return false;
         }
 
         // check extension
-        $end = mb_substr($href, mb_strlen($href) - 4, 4);
+        $end = mb_strtolower(mb_substr($href, mb_strlen($href) - 4, 4));
         if (in_array($end, array('.jpg', 'jpeg', '.png', '.gif', '.pdf', ',doc', '.xls', '.exe'))) {
             return false;
         }
@@ -117,7 +117,7 @@ class UrlHelper
         }
 
         // relative path
-        $href = preg_replace('~\?.*$~isu', '', $currentPath);
+        $currentPath = preg_replace('~\?.*$~isu', '', $currentPath);
         if ($href[0] == '?') {
             return $currentPath . $href;
         }
