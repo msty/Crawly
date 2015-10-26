@@ -20,12 +20,11 @@ class Scanner
 
     /**
      * @param $url
-     * @param bool|true $persistProgress
      * @throws \Exception
      */
-    public function __construct($url, $persistProgress = true)
+    public function __construct($url)
     {
-        $this->scannerHelper = new WebsiteScannerHelper($url, $persistProgress);
+        $this->scannerHelper = new WebsiteScannerHelper($url);
         if (!WebsiteScannerHelper::validateInputUrl($url)) {
             throw new \Exception('Invalid url');
         }

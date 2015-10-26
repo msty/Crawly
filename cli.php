@@ -28,7 +28,7 @@ $request = array_merge($defaults, [
 ]);
 
 // initialize scanner
-$scanner = new \Scanner\Scanner($request['host'], false);
+$scanner = new \Scanner\Scanner($request['host']);
 
 if ($request['type'] === 'sections') {
     // map found pages and internal links to website sections
