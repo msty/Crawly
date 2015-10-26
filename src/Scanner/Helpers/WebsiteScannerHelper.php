@@ -141,7 +141,7 @@ class WebsiteScannerHelper
      *
      * @param Page $page
      */
-    public function successCallback(Page $page)
+    public function genericSuccessCallback(Page $page)
     {
         $this->trackResponseLength($page->length());
 
@@ -192,7 +192,7 @@ class WebsiteScannerHelper
             ($this->getHttps() ? 'https://' : 'http://') . 'www.' . $this->getHost() . '/sitemap.xml',
         ];
         // set empty callback, because we manually handle output
-        $this->getRequestHelper()->setSuccessCallback(function(){});
+        $this->getRequestHelper()->removeSuccessCallbacks();
         $pages = $this->getRequestHelper()->fetchUrls($urls);
         $this->getProgressHelper()->addVisitedUrl('/');
 
@@ -215,7 +215,7 @@ class WebsiteScannerHelper
             $this->getProgressHelper()->addUrls($siteMapLinks, 1000);
         }
 
-        $this->getRequestHelper()->setSuccessCallback([$this, 'successCallback']);
+        $this->getRequestHelper()->addSuccessCallback([$this, 'genericSuccessCallback']);
         $this->setInitialized(true);
     }
 
@@ -535,7 +535,7 @@ class WebsiteScannerHelper
     {
         if ($this->requestHelper === null) {
             $this->requestHelper = new RequestHelper();
-            $this->requestHelper->setSuccessCallback([$this, 'successCallback']);
+            $this->requestHelper->addSuccessCallback([$this, 'genericSuccessCallback']);
         }
         return $this->requestHelper;
     }

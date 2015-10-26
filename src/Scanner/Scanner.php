@@ -13,7 +13,7 @@ class Scanner
     protected $scannerHelper;
 
     /** @var int */
-    protected $scanPages = 100;
+    protected $scanPages = 10;
 
     /** @var int */
     protected $scanned = false;
