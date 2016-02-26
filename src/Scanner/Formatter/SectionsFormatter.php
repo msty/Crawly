@@ -1,27 +1,19 @@
 <?php
 
-namespace Scanner\Helpers;
+namespace Scanner\Formatter;
+
+use Scanner\Page;
 
 /**
- * Class WebsiteMapperHelper
- * @package Scanner\Helpers
+ * Class SectionsFormatter
+ * @package Scanner\Formatter
  */
-class WebsiteMapperHelper
+class SectionsFormatter extends AbstractFormatter
 {
     /**
      * Min amount of pages a section needs to have to get them grouped
      */
     const MIN_SECTIONS = 3;
-
-    /**
-     * @var array
-     */
-    protected $focus = null;
-
-    /**
-     * @var array
-     */
-    protected $urls = [];
 
     /**
      * @var array
@@ -38,8 +30,31 @@ class WebsiteMapperHelper
      */
     protected $notSimilarOrphans;
 
-    public function __construct()
+    /**
+     * Passed as a callback to curl helper to be executed when handle finishes downloading content of the url
+     *
+     * @param Page $page
+     */
+    public function successCallback(Page $page)
     {
+        $path = $this->getScannerHelper()->getUrlHelper()->getPath($page->getUrl()) ?: '/';
+        $urls = $this->getScannerHelper()->getValidLinks($page->getContent(), $path);
+        $this->addUrls($urls);
+    }
+
+    /**
+     * @return array
+     */
+    public function getResult()
+    {
+        $sections = $this->getSections();
+        foreach ($sections as &$section) {
+            $section['url'] = $this->getScannerHelper()->getHostWithSchema() . $section['url'];
+            foreach ($section['sub'] as &$sub) {
+                $sub['url'] = $this->getScannerHelper()->getHostWithSchema() . $sub['url'];
+            }
+        }
+        return $sections;
     }
 
     /**
@@ -265,58 +280,5 @@ class WebsiteMapperHelper
         }
 
         return $sections;
-    }
-
-    /**
-     * @param array $urls
-     *
-     * @return $this
-     */
-    public function addUrls(array $urls)
-    {
-        foreach ($urls as $url) {
-            $this->addUrl($url);
-        }
-        return $this;
-    }
-
-    /**
-     * @param string $url
-     *
-     * @return bool
-     */
-    public function addUrl($url)
-    {
-        if (is_array($url)) {
-            $url = $url['href'];
-        }
-        $url = trim($url);
-        if ($url === '') {
-            $url = '/';
-        }
-        if ($url{0} != '/') {
-            return false;
-        }
-        $this->urls[$url] = 1;
-        return true;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFocus()
-    {
-        return $this->focus;
-    }
-
-    /**
-     * @param string $focus
-     *
-     * @return $this
-     */
-    public function setFocus($focus)
-    {
-        $this->focus = explode('/', $focus);
-        return $this;
     }
 }

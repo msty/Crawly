@@ -47,9 +47,9 @@ class RequestHelper
     protected $lengths = [];
 
     /**
-     * @var callable
+     * @var callable[]
      */
-    protected $successCallback = null;
+    protected $successCallbacks = [];
 
     /**
      * @var string
@@ -103,9 +103,17 @@ class RequestHelper
         return $this->lastInfo;
     }
 
-    public function setSuccessCallback($callable)
+    /**
+     * @param $callable
+     */
+    public function addSuccessCallback($callable)
     {
-        $this->successCallback = $callable;
+        $this->successCallbacks[] = $callable;
+    }
+
+    public function removeSuccessCallbacks()
+    {
+        $this->successCallbacks = [];
     }
 
     /**
@@ -316,8 +324,10 @@ class RequestHelper
         );
 
         // extracting content by default. user can pass callback to change this
-        if (!is_null($this->successCallback)) {
-            call_user_func($this->successCallback, $this->pages[$index]);
+        foreach ($this->successCallbacks as $callback) {
+            if (is_callable($callback)) {
+                call_user_func($callback, $this->pages[$index]);
+            }
         }
     }
 }

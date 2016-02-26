@@ -2,6 +2,7 @@
 
 namespace Scanner\Helpers;
 
+use Scanner\Formatter\FormatterInterface;
 use Scanner\Page;
 use Scanner\Request\RequestHelper;
 use Scanner\Url\UrlHelper;
@@ -13,24 +14,24 @@ use Scanner\Url\UrlHelper;
 class WebsiteScannerHelper
 {
     /**
-     * @var \Scanner\Helpers\WebsiteMapperHelper
-     */
-    protected $mapperHelper;
-
-    /**
-     * @var \Scanner\Helpers\WebsiteProgressHelper
+     * @var WebsiteProgressHelper
      */
     protected $progressHelper;
 
     /**
      * @var UrlHelper
      */
-    protected $urlHelper = null;
+    protected $urlHelper;
 
     /**
-     * @var \Scanner\Request\RequestHelper
+     * @var RequestHelper
      */
-    protected $requestHelper = null;
+    protected $requestHelper;
+
+    /**
+     * @var FormatterInterface
+     */
+    protected $formatter;
 
     /**
      * @var int
@@ -90,50 +91,24 @@ class WebsiteScannerHelper
     }
 
     /**
-     * @param $url
+     * @param string $url
+     * @param FormatterInterface $formatter
      * @throws \Exception
      */
-    public function __construct($url)
+    public function __construct($url, FormatterInterface $formatter)
     {
-        $this->setMapperHelper(new WebsiteMapperHelper());
+        $formatter->setScannerHelper($this);
+        $this->setFormatter($formatter);
         $this->setProgressHelper(new WebsiteProgressHelper());
         $this->parseInputUrl($url);
-        $this->getMapperHelper()->addUrls($this->getProgressHelper()->getAllUrls());
     }
 
     /**
-     * @return array
+     * @return mixed
      */
-    public function getSections()
+    public function getResult()
     {
-        $sections = $this->getMapperHelper()->getSections();
-        foreach ($sections as &$section) {
-            $section['url'] = $this->getHostWithSchema() . $section['url'];
-            foreach ($section['sub'] as &$sub) {
-                $sub['url'] = $this->getHostWithSchema() . $sub['url'];
-            }
-        }
-        return $sections;
-    }
-
-    /**
-     * @param array $filterSections
-     * @return array
-     */
-    public function getUrlsOfSections(array $filterSections = [])
-    {
-        $urls = [];
-        $sections = $this->getMapperHelper()->getSections(true);
-        foreach ($sections as $section) {
-            if (empty($filterSections) || in_array($section['code'], $filterSections)) {
-                $urls = array_merge($urls, (array) $section['urlsList']);
-            }
-        }
-
-        foreach ($urls as $u => $url) {
-            $urls[$u] = $this->getHostWithSchema() . $url;
-        }
-        return $urls;
+        return $this->getFormatter()->getResult();
     }
 
     /**
@@ -141,13 +116,12 @@ class WebsiteScannerHelper
      *
      * @param Page $page
      */
-    public function successCallback(Page $page)
+    public function genericSuccessCallback(Page $page)
     {
         $this->trackResponseLength($page->length());
 
         $path = $this->getUrlHelper()->getPath($page->getUrl()) ?: '/';
         $urls = $this->getValidLinks($page->getContent(), $path);
-        $this->getMapperHelper()->addUrls($urls);
         $this->getProgressHelper()->addUrls($urls);
     }
 
@@ -192,7 +166,7 @@ class WebsiteScannerHelper
             ($this->getHttps() ? 'https://' : 'http://') . 'www.' . $this->getHost() . '/sitemap.xml',
         ];
         // set empty callback, because we manually handle output
-        $this->getRequestHelper()->setSuccessCallback(function(){});
+        $this->getRequestHelper()->removeSuccessCallbacks();
         $pages = $this->getRequestHelper()->fetchUrls($urls);
         $this->getProgressHelper()->addVisitedUrl('/');
 
@@ -215,7 +189,8 @@ class WebsiteScannerHelper
             $this->getProgressHelper()->addUrls($siteMapLinks, 1000);
         }
 
-        $this->getRequestHelper()->setSuccessCallback([$this, 'successCallback']);
+        $this->getRequestHelper()->addSuccessCallback([$this, 'genericSuccessCallback']);
+        $this->getRequestHelper()->addSuccessCallback([$this->getFormatter(), 'successCallback']);
         $this->setInitialized(true);
     }
 
@@ -276,7 +251,7 @@ class WebsiteScannerHelper
      *
      * @return array
      */
-    protected function getValidLinks($html, $currentPath = '/')
+    public function getValidLinks($html, $currentPath = '/')
     {
         $links = $this->extractLinks($html);
         $linksCount = count($links);
@@ -337,7 +312,7 @@ class WebsiteScannerHelper
             if ($info['host'] != $this->getHost()) {
                 continue;
             }
-            $this->getMapperHelper()->addUrl($info['fullPath']);
+            $this->getFormatter()->addUrl($info['fullPath']);
         }
     }
 
@@ -401,7 +376,7 @@ class WebsiteScannerHelper
 
         $this->focus = $focus;
         $this->getProgressHelper()->setFocus($focus);
-        $this->getMapperHelper()->setFocus($focus);
+        $this->getFormatter()->setFocus($focus);
         return $this;
     }
 
@@ -480,25 +455,6 @@ class WebsiteScannerHelper
     }
 
     /**
-     * @param WebsiteMapperHelper $mapper
-     *
-     * @return $this
-     */
-    public function setMapperHelper(WebsiteMapperHelper $mapper)
-    {
-        $this->mapperHelper = $mapper;
-        return $this;
-    }
-
-    /**
-     * @return WebsiteMapperHelper
-     */
-    public function getMapperHelper()
-    {
-        return $this->mapperHelper;
-    }
-
-    /**
      * @param WebsiteProgressHelper $progress
      *
      * @return $this
@@ -535,8 +491,25 @@ class WebsiteScannerHelper
     {
         if ($this->requestHelper === null) {
             $this->requestHelper = new RequestHelper();
-            $this->requestHelper->setSuccessCallback([$this, 'successCallback']);
+            $this->requestHelper->addSuccessCallback([$this, 'genericSuccessCallback']);
+            $this->requestHelper->addSuccessCallback([$this->getFormatter(), 'successCallback']);
         }
         return $this->requestHelper;
+    }
+
+    /**
+     * @return FormatterInterface
+     */
+    public function getFormatter()
+    {
+        return $this->formatter;
+    }
+
+    /**
+     * @param FormatterInterface $formatter
+     */
+    public function setFormatter(FormatterInterface $formatter)
+    {
+        $this->formatter = $formatter;
     }
 }
